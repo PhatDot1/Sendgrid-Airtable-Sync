@@ -30,4 +30,4 @@ jobs:
         AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
         AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
       run: |
-        python your_script_name.py
+        python Airtable_to_sendgrid.py
