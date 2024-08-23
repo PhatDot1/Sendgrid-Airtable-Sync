@@ -4,6 +4,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import re
 import os
+import json 
 
 # SendGrid and Unsubscribe Group ID
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
