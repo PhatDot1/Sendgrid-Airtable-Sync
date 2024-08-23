@@ -2,7 +2,7 @@ name: Run Airtable to SendGrid Sync with Google Sheets
 
 on:
   schedule:
-    - cron: "*/300 * * * *"  
+    - cron: "*/30 * * * *"  
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
