@@ -1,0 +1,37 @@
+name: Run Airtable to SendGrid Sync with Google Sheets
+
+on:
+  schedule:
+    - cron: "*/100 * * * *"  
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests gspread oauth2client
+
+    - name: Decode Google Sheets credentials
+      run: echo "${{ secrets.ENCODED_GOOGLE_SHEET_CREDENTIALS }}" | base64 --decode > credentials.json
+
+    - name: Run the script
+      env:
+        SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+        AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+        AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
+        GOOGLE_SHEET_CREDENTIALS: ${{ secrets.ENCODED_GOOGLE_SHEET_CREDENTIALS }}
+      run: |
+        python Airtable_to_sendgrid.py
