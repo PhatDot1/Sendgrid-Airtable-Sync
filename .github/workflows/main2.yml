@@ -34,4 +34,4 @@ jobs:
         AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
         GOOGLE_SHEET_CREDENTIALS: ${{ secrets.ENCODED_GOOGLE_SHEET_CREDENTIALS }}
       run: |
-        python Airtable_to_sendgrid.py
+        python Sendgrid_to_airtable.py
