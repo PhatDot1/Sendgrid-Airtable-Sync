@@ -1,4 +1,5 @@
 import requests
+import os
 import re
 
 # SendGrid API Key and Unsubscribe Group ID
