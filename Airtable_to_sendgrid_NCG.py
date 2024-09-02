@@ -89,26 +89,26 @@ def get_sendgrid_unsubscribes():
         raise Exception(f"Failed to get unsubscribes from SendGrid: {response.status_code} - {response.text}")
 
 # Function to remove emails from SendGrid unsubscribe group
+
 def remove_from_sendgrid_unsubscribes(emails):
     logging.info(f"Removing {len(emails)} emails from the SendGrid unsubscribe group...")
-    url = f"https://api.sendgrid.com/v3/asm/groups/{UNSUBSCRIBE_GROUP_ID}/suppressions/remove"
     
+    # SendGrid requires individual DELETE requests for each email
     headers = {
         "Authorization": f"Bearer {SENDGRID_API_KEY}",
         "Content-Type": "application/json"
     }
     
-    payload = {
-        "recipient_emails": emails
-    }
-    
-    response = requests.post(url, headers=headers, json=payload)
-    
-    if response.status_code == 204:
-        logging.info(f"Successfully removed {len(emails)} emails from the SendGrid unsubscribe group.")
-    else:
-        logging.error(f"Failed to remove emails from SendGrid unsubscribe group: {response.status_code} - {response.text}")
-        raise Exception(f"Failed to remove emails from SendGrid unsubscribe group: {response.status_code} - {response.text}")
+    for email in emails:
+        url = f"https://api.sendgrid.com/v3/asm/groups/{UNSUBSCRIBE_GROUP_ID}/suppressions/{email}"
+        
+        response = requests.delete(url, headers=headers)
+        
+        if response.status_code == 204:
+            logging.info(f"Successfully removed {email} from the SendGrid unsubscribe group.")
+        else:
+            logging.error(f"Failed to remove {email} from SendGrid unsubscribe group: {response.status_code} - {response.text}")
+            raise Exception(f"Failed to remove {email} from SendGrid unsubscribe group: {response.status_code} - {response.text}")
 
 # Main function
 def main():
