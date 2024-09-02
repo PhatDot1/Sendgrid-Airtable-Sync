@@ -72,27 +72,48 @@ def search_airtable_record(email):
         raise Exception(f"Failed to search Airtable for {email}: {response.status_code} - {response.text}")
 
 # Function to update Airtable record
+# Function to update Airtable record
 def update_airtable_record(record_id, email):
-    update_data = {
-        "fields": {
-            'Newsletter Consent': 'Consent Revoked',
-            'Consent Snapshot': f'Newsletter - Consent Revoked - {datetime.now().strftime("%Y-%m-%d")} - N/A'
-        }
-    }
-    
+    # Fetch the current record to check the 'Consent Snapshot' field
     headers = {
         "Authorization": f"Bearer {AIRTABLE_API_KEY}",
         "Content-Type": "application/json"
     }
     
-    update_url = f"{AIRTABLE_URL}/{record_id}"
-    response = requests.patch(update_url, json=update_data, headers=headers)
+    # Retrieve the current record to check the existing 'Consent Snapshot'
+    record_url = f"{AIRTABLE_URL}/{record_id}"
+    response = requests.get(record_url, headers=headers)
     
     if response.status_code == 200:
-        return True
+        record = response.json()
+        current_snapshot = record['fields'].get('Consent Snapshot', '')
+        
+        # Determine the new snapshot value based on whether there's already data
+        if current_snapshot:
+            new_snapshot = f"{current_snapshot}, Newsletter - Consent Revoked - {datetime.now().strftime('%Y-%m-%d')} - N/A"
+        else:
+            new_snapshot = f"Newsletter - Consent Revoked - {datetime.now().strftime('%Y-%m-%d')} - N/A"
+        
+        # Update the record with the new snapshot
+        update_data = {
+            "fields": {
+                'Newsletter Consent': 'Consent Revoked',
+                'Consent Snapshot': new_snapshot
+            }
+        }
+        
+        # Send the update request
+        response = requests.patch(record_url, json=update_data, headers=headers)
+        
+        if response.status_code == 200:
+            return True
+        else:
+            print(f"Failed to update Airtable record for {email}: {response.status_code} - {response.text}")
+            return False
     else:
-        print(f"Failed to update Airtable record for {email}: {response.status_code} - {response.text}")
+        print(f"Failed to retrieve Airtable record for {email}: {response.status_code} - {response.text}")
         return False
+
 
 # Function to add email to Google Sheets
 def add_email_to_sheet(email):
