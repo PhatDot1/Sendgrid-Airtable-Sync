@@ -1,4 +1,4 @@
-name: Run Airtable to SendGrid Sync with Google Sheets
+name: Run Sendgrid to Airtable Sync with Google Sheets
 
 on:
   schedule:
