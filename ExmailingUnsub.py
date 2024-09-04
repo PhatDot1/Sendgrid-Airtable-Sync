@@ -12,7 +12,7 @@ with open('credentials.json') as creds_file:
     creds_json = json.load(creds_file)
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
 client = gspread.authorize(creds)
-sheet = client.open_by_url(os.getenv('GOOGLE_SHEET_URL')).worksheet("Exmailing")  # Google Sheet URL stored as env var
+sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/18ORZTfeVGVCo7Wx4wzQMhMVPseCnGRT3W1wKEGNhSaw/edit#gid=0").worksheet("Exmailing")
 
 # Set up Airtable API
 AIRTABLE_API_KEY = os.getenv('AIRTABLE_API_KEY')
