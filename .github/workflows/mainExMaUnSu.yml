@@ -1,4 +1,4 @@
-name: Run Airtable Sync with Google Sheets
+name: Run Exmailing Unsub
 
 on:
   schedule:
