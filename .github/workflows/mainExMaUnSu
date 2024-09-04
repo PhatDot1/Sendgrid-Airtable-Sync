@@ -1,0 +1,49 @@
+name: Run Airtable Sync with Google Sheets
+
+on:
+  schedule:
+    - cron: "*/6 * * * *"  # Runs every 15 minutes
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository to access the code
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Set up Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    # Install necessary dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests gspread oauth2client
+
+    # Decode the encoded Google Sheets credentials and save them as credentials.json
+    - name: Decode Google Sheets credentials
+      run: echo "${{ secrets.ENCODED_GOOGLE_SHEET_CREDENTIALS }}" | base64 --decode > credentials.json
+
+    # Run the Python script with the required environment variables
+    - name: Run the Airtable sync script
+      env:
+        AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        AIRTABLE_BASE_ID_1: ${{ secrets.AIRTABLE_BASE_ID_1 }}
+        AIRTABLE_TABLE_ID_1: ${{ secrets.AIRTABLE_TABLE_ID_1 }}
+        AIRTABLE_BASE_ID_2: ${{ secrets.AIRTABLE_BASE_ID_2 }}
+        AIRTABLE_TABLE_ID_2: ${{ secrets.AIRTABLE_TABLE_ID_2 }}
+        AIRTABLE_BASE_ID_3: ${{ secrets.AIRTABLE_BASE_ID_3 }}
+        AIRTABLE_TABLE_ID_3: ${{ secrets.AIRTABLE_TABLE_ID_3 }}
+        AIRTABLE_BASE_ID_4: ${{ secrets.AIRTABLE_BASE_ID_4 }}
+        AIRTABLE_TABLE_ID_4: ${{ secrets.AIRTABLE_TABLE_ID_4 }}
+        NEW_AIRTABLE_BASE_ID: ${{ secrets.NEW_AIRTABLE_BASE_ID }}
+        NEW_AIRTABLE_TABLE_NAME: ${{ secrets.NEW_AIRTABLE_TABLE_NAME }}
+        GOOGLE_SHEET_URL: ${{ secrets.GOOGLE_SHEET_URL }}
+      run: |
+        python ExmailingUnsub.py
