@@ -131,13 +131,13 @@ def main():
             if email:
                 # Set the single-select values based on which table the record was found in
                 if base_id == os.getenv('AIRTABLE_BASE_ID_3') and table_name == os.getenv('AIRTABLE_TABLE_ID_3'):
-                    web3_github = True  # Found in Web3 GitHub Table
+                    ai_external = True  # Found in Web3 GitHub Table
 
                 if base_id == os.getenv('AIRTABLE_BASE_ID_4') and table_name == os.getenv('AIRTABLE_TABLE_ID_4'):
-                    web3_external = True  # Found in Web3 External Hacker Table
+                    web3_github = True  # Found in Web3 External Hacker Table
 
                 if base_id == os.getenv('AIRTABLE_BASE_ID_2') and table_name == os.getenv('AIRTABLE_TABLE_ID_2'):
-                    ai_external = True  # Found in AI External Hacker Table
+                    web3_external = True  # Found in AI External Hacker Table
 
                 if base_id == os.getenv('AIRTABLE_BASE_ID_1') and table_name == os.getenv('AIRTABLE_TABLE_ID_1'):
                     ai_github = True  # Found in AI GitHub Table
