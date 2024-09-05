@@ -41,29 +41,61 @@ def search_airtable_record(record_id):
 
     return None, None, None  # If no record is found in any table
 
+
 # Function to update the email by prefixing a # symbol
 def update_airtable_email(record_id, base_id, table_name, email):
-    new_email = f"#{email}"
+    if not email.startswith("#"):
+        new_email = f"#{email}"
     
-    update_data = {
-        "fields": {
-            'Email': new_email
+        update_data = {
+            "fields": {
+                'Email': new_email
+            }
         }
-    }
 
+        headers = {
+            "Authorization": f"Bearer {AIRTABLE_API_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        update_url = f"https://api.airtable.com/v0/{base_id}/{table_name}/{record_id}"
+        response = requests.patch(update_url, json=update_data, headers=headers)
+
+        if response.status_code == 200:
+            return True
+        else:
+            print(f"Failed to update Airtable record {record_id}: {response.status_code} - {response.text}")
+            return False
+    else:
+        print(f"Email {email} already has a # prefix, no update needed.")
+        return True
+
+
+# Function to search for records by Email in multiple Airtable tables and update all occurrences of the email
+def search_and_update_email(email):
     headers = {
         "Authorization": f"Bearer {AIRTABLE_API_KEY}",
         "Content-Type": "application/json"
     }
 
-    update_url = f"https://api.airtable.com/v0/{base_id}/{table_name}/{record_id}"
-    response = requests.patch(update_url, json=update_data, headers=headers)
+    # Loop through all bases and tables to search for email
+    for base_id, table_name in AIRTABLE_BASE_IDS_AND_TABLES:
+        url = f"https://api.airtable.com/v0/{base_id}/{table_name}?filterByFormula=FIND('{email}', Email)"
+        response = requests.get(url, headers=headers)
 
-    if response.status_code == 200:
-        return True
-    else:
-        print(f"Failed to update Airtable record {record_id}: {response.status_code} - {response.text}")
-        return False
+        if response.status_code == 200:
+            records = response.json().get('records', [])
+            for record in records:
+                record_id = record['id']
+                email_field = record['fields'].get('Email')
+
+                if email_field and not email_field.startswith('#'):
+                    if update_airtable_email(record_id, base_id, table_name, email_field):
+                        print(f"Updated email {email_field} with # in base {base_id}, table {table_name}")
+                    else:
+                        print(f"Failed to update email {email_field} in base {base_id}, table {table_name}")
+        else:
+            print(f"Failed to search Airtable base {base_id}, table {table_name}: {response.status_code} - {response.text}")
 
 
 # Function to add email to a different Airtable table
@@ -101,6 +133,7 @@ def add_email_to_airtable(email, web3_github, web3_external, ai_external, ai_git
         print(f"Failed to add email {email} to table {table_name}: {response.status_code} - {response.text}")
         return False
 
+
 # Main function to process the Google Sheet and update Airtable records
 def main():
     # Get all records from the Google Sheet
@@ -110,14 +143,14 @@ def main():
     for i, row in enumerate(records, start=1):  # 'i' is the row index in the sheet (starting from 1)
         if len(row) == 0:
             continue  # Skip completely empty rows
-        
+
         record_id = row[0]  # Column A contains the Airtable Record ID
         status = row[1] if len(row) > 1 else ''  # Safely get status (Column B), defaulting to empty if not present
 
         if status.lower() == 'done':
             continue  # Skip already processed records
 
-        # Search for the record in Airtable
+        # Search for the record in Airtable by ID
         record, base_id, table_name = search_airtable_record(record_id)
 
         # Initialize the single-select field values
@@ -131,22 +164,25 @@ def main():
             if email:
                 # Set the single-select values based on which table the record was found in
                 if base_id == os.getenv('AIRTABLE_BASE_ID_3') and table_name == os.getenv('AIRTABLE_TABLE_ID_3'):
-                    ai_external = True  # Found in Web3 GitHub Table
+                    ai_external = True  # Found in Web3 GitHub Table [not actually, i wired these wrong so am adjusting lol]
 
                 if base_id == os.getenv('AIRTABLE_BASE_ID_4') and table_name == os.getenv('AIRTABLE_TABLE_ID_4'):
-                    web3_github = True  # Found in Web3 External Hacker Table
+                    web3_github = True  # Found in Web3 External Hacker Table [not actually, i wired these wrong so am adjusting lol]
 
                 if base_id == os.getenv('AIRTABLE_BASE_ID_2') and table_name == os.getenv('AIRTABLE_TABLE_ID_2'):
-                    web3_external = True  # Found in AI External Hacker Table
+                    web3_external = True  # Found in AI External Hacker Table [not actually, i wired these wrong so am adjusting lol]
 
                 if base_id == os.getenv('AIRTABLE_BASE_ID_1') and table_name == os.getenv('AIRTABLE_TABLE_ID_1'):
-                    ai_github = True  # Found in AI GitHub Table
+                    ai_github = True  # Found in AI GitHub Table [not actually, i wired these wrong so am adjusting lol]
 
-                # Update the email by adding # at the start
+                # Update the email by adding # at the start if needed
                 if update_airtable_email(record_id, base_id, table_name, email):
                     # Mark as done in Google Sheet
                     sheet.update_cell(i, 2, 'Done')  # Update column B with 'Done'
                     print(f"Updated record {record_id} and marked as done.")
+
+                    # Search for the same email in all other tables and update
+                    search_and_update_email(email)
 
                     # Add the email to the specified base/table with single-select fields
                     if add_email_to_airtable(email, web3_github, web3_external, ai_external, ai_github):
