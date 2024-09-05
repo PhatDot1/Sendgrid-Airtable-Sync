@@ -50,6 +50,7 @@ def search_and_standardize_emails():
     }
 
     # Loop through all bases and tables to search for emails containing '+'
+    total_found = 0
     for base_id, table_name in AIRTABLE_BASE_IDS_AND_TABLES:
         # Log the base and table currently being processed
         print(f"Processing base: {base_id}, table: {table_name}")
@@ -70,8 +71,16 @@ def search_and_standardize_emails():
 
         if response.status_code == 200:
             records = response.json().get('records', [])
+            found_count = len(records)
+            total_found += found_count
+            print(f"Found {found_count} records in base {base_id}, table {table_name} with {email_field_name} containing '+'")
+
             for record in records:
                 email_field = record['fields'].get(email_field_name)
+
+                # Log each email found
+                if email_field and '+' in email_field:
+                    print(f"Found email: {email_field}")
 
                 # Standardize the email (remove + and any alias part)
                 if email_field and '+' in email_field:
@@ -87,6 +96,9 @@ def search_and_standardize_emails():
         else:
             # Log the failure, including the base and table where it occurred
             print(f"Failed to search Airtable base {base_id}, table {table_name}: {response.status_code} - {response.text}")
+    
+    # Final confirmation message
+    print(f"Script completed. Total records found with '+': {total_found}")
 
 
 # Main function to run the email standardization
