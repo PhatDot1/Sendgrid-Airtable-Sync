@@ -80,16 +80,19 @@ def search_and_update_email(email):
 
     # Loop through all bases and tables to search for email
     for base_id, table_name in AIRTABLE_BASE_IDS_AND_TABLES:
-        url = f"https://api.airtable.com/v0/{base_id}/{table_name}?filterByFormula=FIND('{email}', Email)"
+        url = f"https://api.airtable.com/v0/{base_id}/{table_name}?filterByFormula=Email='{email}'"
         response = requests.get(url, headers=headers)
 
         if response.status_code == 200:
             records = response.json().get('records', [])
             for record in records:
-                record_id = record['id']
                 email_field = record['fields'].get('Email')
 
-                if email_field and not email_field.startswith('#'):
+                # Check if the email matches the email we're searching for and if it needs to be updated
+                if email_field and email_field == email and not email_field.startswith('#'):
+                    record_id = record['id']
+
+                    # Call the update function to add # to the email
                     if update_airtable_email(record_id, base_id, table_name, email_field):
                         print(f"Updated email {email_field} with # in base {base_id}, table {table_name}")
                     else:
@@ -164,16 +167,16 @@ def main():
             if email:
                 # Set the single-select values based on which table the record was found in
                 if base_id == os.getenv('AIRTABLE_BASE_ID_3') and table_name == os.getenv('AIRTABLE_TABLE_ID_3'):
-                    ai_external = True  # Found in Web3 GitHub Table [not actually, i wired these wrong so am adjusting lol]
+                    ai_external = True  # Found in Web3 GitHub Table
 
                 if base_id == os.getenv('AIRTABLE_BASE_ID_4') and table_name == os.getenv('AIRTABLE_TABLE_ID_4'):
-                    web3_github = True  # Found in Web3 External Hacker Table [not actually, i wired these wrong so am adjusting lol]
+                    web3_github = True  # Found in Web3 External Hacker Table
 
                 if base_id == os.getenv('AIRTABLE_BASE_ID_2') and table_name == os.getenv('AIRTABLE_TABLE_ID_2'):
-                    web3_external = True  # Found in AI External Hacker Table [not actually, i wired these wrong so am adjusting lol]
+                    web3_external = True  # Found in AI External Hacker Table
 
                 if base_id == os.getenv('AIRTABLE_BASE_ID_1') and table_name == os.getenv('AIRTABLE_TABLE_ID_1'):
-                    ai_github = True  # Found in AI GitHub Table [not actually, i wired these wrong so am adjusting lol]
+                    ai_github = True  # Found in AI GitHub Table
 
                 # Update the email by adding # at the start if needed
                 if update_airtable_email(record_id, base_id, table_name, email):
