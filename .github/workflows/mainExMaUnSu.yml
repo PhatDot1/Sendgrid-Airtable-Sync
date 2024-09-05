@@ -2,7 +2,7 @@ name: Run Exmailing Unsub
 
 on:
   schedule:
-    - cron: "*/6 * * * *"  # Kind of runs sometimes 
+    - cron: "* * * * *"  # Kind of runs sometimes 
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
