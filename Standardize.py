@@ -37,34 +37,31 @@ def update_airtable_email(record_id, base_id, table_name, email_field_name, new_
     response = requests.patch(update_url, json=update_data, headers=headers)
 
     if response.status_code == 200:
+        print(f"Successfully updated email {new_email} for record {record_id}")
         return True
     else:
         print(f"Failed to update Airtable record {record_id}: {response.status_code} - {response.text}")
         return False
 
-# Function to search for records containing a + symbol in the email
+# Function to search for records containing a + symbol in the email and standardize them
 def search_and_standardize_emails():
     headers = {
         "Authorization": f"Bearer {AIRTABLE_API_KEY}",
         "Content-Type": "application/json"
     }
 
-    # Loop through all bases and tables to search for emails containing '+'
     total_found = 0
+    total_updated = 0
     for base_id, table_name in AIRTABLE_BASE_IDS_AND_TABLES:
-        # Log the base and table currently being processed
         print(f"Processing base: {base_id}, table: {table_name}")
 
-        # Check if we are in the 5th table
         if base_id == os.getenv('AIRTABLE_BASE_ID_5'):
             email_field_name = "Main Email"
         else:
             email_field_name = "Email"
 
-        # Correctly quote the '+' and field name in the filter formula
+        # Filter records where the email contains '+'
         url = f"https://api.airtable.com/v0/{base_id}/{table_name}?filterByFormula=FIND('+',{{{email_field_name}}})>0"
-        
-        # Log the request URL
         print(f"Request URL: {url}")
         
         response = requests.get(url, headers=headers)
@@ -82,23 +79,20 @@ def search_and_standardize_emails():
                 if email_field and '+' in email_field:
                     print(f"Found email: {email_field}")
 
-                # Standardize the email (remove + and any alias part)
-                if email_field and '+' in email_field:
+                    # Standardize the email (remove + and any alias part)
                     new_email = standardize_email(email_field)
                     if new_email != email_field:
                         record_id = record['id']
-
-                        # Call the update function to standardize the email
+                        # Update the email in Airtable
                         if update_airtable_email(record_id, base_id, table_name, email_field_name, new_email):
-                            print(f"Updated email {email_field} to {new_email} in base {base_id}, table {table_name}")
-                        else:
-                            print(f"Failed to update email {email_field} in base {base_id}, table {table_name}")
+                            total_updated += 1
+
         else:
-            # Log the failure, including the base and table where it occurred
             print(f"Failed to search Airtable base {base_id}, table {table_name}: {response.status_code} - {response.text}")
-    
+
     # Final confirmation message
     print(f"Script completed. Total records found with '+': {total_found}")
+    print(f"Total records updated: {total_updated}")
 
 
 # Main function to run the email standardization
