@@ -51,14 +51,21 @@ def search_and_standardize_emails():
 
     # Loop through all bases and tables to search for emails containing '+'
     for base_id, table_name in AIRTABLE_BASE_IDS_AND_TABLES:
+        # Log the base and table currently being processed
+        print(f"Processing base: {base_id}, table: {table_name}")
+
         # Check if we are in the 5th table
         if base_id == os.getenv('AIRTABLE_BASE_ID_5'):
             email_field_name = "Main Email"
         else:
             email_field_name = "Email"
 
-        # Filter formula to search for emails containing '+'
-        url = f"https://api.airtable.com/v0/{base_id}/{table_name}?filterByFormula=FIND('+',{email_field_name})>0"
+        # Correctly quote the '+' and field name in the filter formula
+        url = f"https://api.airtable.com/v0/{base_id}/{table_name}?filterByFormula=FIND('+',{{{email_field_name}}})>0"
+        
+        # Log the request URL
+        print(f"Request URL: {url}")
+        
         response = requests.get(url, headers=headers)
 
         if response.status_code == 200:
@@ -78,6 +85,7 @@ def search_and_standardize_emails():
                         else:
                             print(f"Failed to update email {email_field} in base {base_id}, table {table_name}")
         else:
+            # Log the failure, including the base and table where it occurred
             print(f"Failed to search Airtable base {base_id}, table {table_name}: {response.status_code} - {response.text}")
 
 
