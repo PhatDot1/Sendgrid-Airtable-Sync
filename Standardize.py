@@ -13,10 +13,14 @@ AIRTABLE_BASE_IDS_AND_TABLES = [
 
 # Function to standardize email (remove the part after '+' in the local part)
 def standardize_email(email):
-    local_part, domain_part = email.split('@')
-    if '+' in local_part:
-        local_part = local_part.split('+')[0]  # Remove everything after '+'
-    return f"{local_part}@{domain_part}"
+    try:
+        local_part, domain_part = email.split('@')
+        if '+' in local_part:
+            local_part = local_part.split('+')[0]  # Remove everything after '+'
+        return f"{local_part}@{domain_part}"
+    except Exception as e:
+        print(f"Error standardizing email {email}: {e}")
+        return email  # Return the original email if there is an error
 
 # Function to update email in Airtable
 def update_airtable_email(record_id, base_id, table_name, email_field_name, new_email):
