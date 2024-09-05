@@ -86,18 +86,19 @@ def search_and_standardize_emails():
             for record in records:
                 email_field = record['fields'].get(email_field_name)
 
-                # Log each email found
+                # Log each email found and print it as requested
                 if email_field and '+' in email_field:
-                    print(f"Processing record ID: {record['id']}, Email: {email_field}")
+                    print(f"Processing record ID: {record['id']}, Original Email: {email_field}")
 
                     # Standardize the email (remove + and any alias part)
                     new_email = standardize_email(email_field)
 
-                    # Log the new email before updating
+                    # Log the standardized email before updating
                     print(f"Standardized email: {new_email} (from {email_field})")
 
-                    if new_email != email_field:  # Only update if there's a change
-                        print(f"Updating record {record['id']} to new email: {new_email}")
+                    # Update the email if changed
+                    if new_email != email_field:
+                        print(f"Updating record {record['id']} with new email: {new_email}")
                         if update_airtable_email(record['id'], base_id, table_name, email_field_name, new_email):
                             total_updated += 1
                         else:
