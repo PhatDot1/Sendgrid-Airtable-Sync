@@ -1,0 +1,45 @@
+name: Standardization1
+
+# Controls when the action will run. This is scheduled to run every 10 minutes.
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # Every 10 minutes
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  standardize-emails:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Check out the repository to the GitHub Actions runner
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Python environment
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+
+    # Step 4: Run the script
+    - name: Run Airtable Email Standardization Script
+      env:
+        AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        AIRTABLE_BASE_ID_1: ${{ secrets.AIRTABLE_BASE_ID_1 }}
+        AIRTABLE_TABLE_ID_1: ${{ secrets.AIRTABLE_TABLE_ID_1 }}
+        AIRTABLE_BASE_ID_2: ${{ secrets.AIRTABLE_BASE_ID_2 }}
+        AIRTABLE_TABLE_ID_2: ${{ secrets.AIRTABLE_TABLE_ID_2 }}
+        AIRTABLE_BASE_ID_3: ${{ secrets.AIRTABLE_BASE_ID_3 }}
+        AIRTABLE_TABLE_ID_3: ${{ secrets.AIRTABLE_TABLE_ID_3 }}
+        AIRTABLE_BASE_ID_4: ${{ secrets.AIRTABLE_BASE_ID_4 }}
+        AIRTABLE_TABLE_ID_4: ${{ secrets.AIRTABLE_TABLE_ID_4 }}
+        AIRTABLE_BASE_ID_5: ${{ secrets.AIRTABLE_BASE_ID_5 }}
+        AIRTABLE_TABLE_ID_5: ${{ secrets.AIRTABLE_TABLE_ID_5 }}
+      run: |
+        python Standardize.py
