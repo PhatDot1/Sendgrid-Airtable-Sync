@@ -92,31 +92,33 @@ class GitHubApiHandler:
         return None
 
 # Define Google Sheets interaction functions
-def get_sheet_data(sheet, sheet_name, range):
-    worksheet = sheet.worksheet(sheet_name)
-    return worksheet.get(range)
+def get_records_with_empty_done(worksheet):
+    records = worksheet.get_all_records()
+    # Filter records where 'Done?' is empty (column 'Done?' is assumed to be at index 4, corresponding to column E)
+    filtered_records = [record for record in records if not record['Done?']]
+    return filtered_records
 
-def update_sheet_data(sheet, sheet_name, range, values):
-    worksheet = sheet.worksheet(sheet_name)
-    worksheet.update(range, values)
+def update_sheet_data(worksheet, cell_range, values):
+    worksheet.update(cell_range, values)
 
 # Process batches of records from Google Sheets
-def process_batch(sheet, github_api_handler):
-    records = sheet.get_all_records()
+def process_batch(worksheet, github_api_handler):
+    records = get_records_with_empty_done(worksheet)
     batch_size = 100
     for i in range(0, len(records), batch_size):
         batch = records[i:i + batch_size]
         for record in batch:
             profile_url = record['Profile URL']
-            if record['Done?'] != 'Yes' and profile_url:
+            if profile_url:
                 logger.info(f"Processing record: {record['Username']} with GitHub URL: {profile_url}")
                 try:
                     email = github_api_handler.get_user_info_from_github_api(profile_url)
                     if email:
-                        # Update the 'Done?' field in Sheet1
-                        update_sheet_data(sheet, 'Sheet1', f'D{i+2}', [['Yes']])
-                        # Add data to Sheet2
-                        update_sheet_data(sheet, 'Sheet2', f'A{i+2}:E{i+2}', [[record['Username'], record['User ID'], profile_url, email, record['Repo']]])
+                        row_index = records.index(record) + 2  # Adding 2 because Google Sheets rows are 1-based, and we skip the header
+                        # Update the 'Done?' field in the corresponding row
+                        update_sheet_data(worksheet, f'E{row_index}', [['Yes']])
+                        # Add data to Sheet2 (this is just a placeholder, adapt as needed)
+                        update_sheet_data(worksheet, f'A{row_index}:E{row_index}', [[record['Username'], record['User ID'], profile_url, email, record['Repo']]])
                 except Exception as e:
                     logger.error(f"An error occurred while processing {profile_url}: {e}")
 
@@ -132,9 +134,12 @@ def main():
         # Open the Google Sheet
         sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1rKdG00VihG3zHRQLgQ6NteUHhdQxAqP2reLU8LCFotk/edit#gid=0")
         
+        # Select the specific worksheet (Sheet1)
+        worksheet = sheet.worksheet("Sheet1")
+        
         # Process records in batches of 100
         logger.info("Processing records in batches...")
-        process_batch(sheet, github_api_handler)
+        process_batch(worksheet, github_api_handler)
 
     except Exception as e:
         logger.error(f"An error occurred in the main function: {e}")
