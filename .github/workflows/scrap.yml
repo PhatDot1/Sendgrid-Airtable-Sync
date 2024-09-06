@@ -1,4 +1,4 @@
-name: GitHub Email Scraper
+name: GScrap
 
 on:
   workflow_dispatch:  # Allows manual trigger
@@ -35,4 +35,4 @@ jobs:
         env:
           GITHUB_API_KEYS: ${{ secrets.GITHUB_API_KEYS }}  # GitHub API keys should be stored in GitHub Secrets
         run: |
-          python your_script_name.py  # Replace with your script's filename
+          python CloudScrap.py  # Replace with your script's filename
