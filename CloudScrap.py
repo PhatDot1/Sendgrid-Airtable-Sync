@@ -98,20 +98,23 @@ def get_records_with_empty_done(worksheet):
     filtered_records = [record for record in records if not record['Done?']]
     return filtered_records
 
-def update_sheet1(worksheet, row_index):
-    # Update the 'Done?' field in Sheet1 with 'Yes' using named arguments
-    logger.info(f"Marking row {row_index} as Done in Sheet1.")
-    worksheet.update(range_name=f'E{row_index}', values=[['Yes']])
+def batch_update_sheet1(worksheet, batch_done_updates):
+    # Update 'Done?' field for all records in the batch
+    logger.info(f"Marking {len(batch_done_updates)} records as Done in Sheet1.")
+    worksheet.batch_update(batch_done_updates)
 
-def append_to_sheet2(worksheet, data):
-    # Append data to Sheet2
-    logger.info(f"Appending data to Sheet2: {data}")
-    worksheet.append_row(data)
+def batch_append_to_sheet2(worksheet, batch_email_data):
+    # Append data to Sheet2 in a single request
+    logger.info(f"Appending {len(batch_email_data)} records to Sheet2.")
+    worksheet.append_rows(batch_email_data)
 
 # Process batches of records from Google Sheets
 def process_batch(worksheet1, worksheet2, github_api_handler):
     records = get_records_with_empty_done(worksheet1)
     batch_size = 100
+    batch_done_updates = []
+    batch_email_data = []
+    
     for i in range(0, len(records), batch_size):
         batch = records[i:i + batch_size]
         for record in batch:
@@ -121,22 +124,28 @@ def process_batch(worksheet1, worksheet2, github_api_handler):
                 logger.info(f"Processing record: {record['Username']} with GitHub URL: {profile_url}")
                 try:
                     email = github_api_handler.get_user_info_from_github_api(profile_url)
-                    # Mark as done in Sheet1 (column E)
-                    update_sheet1(worksheet1, row_index)
+                    # Add 'Done?' update to batch
+                    batch_done_updates.append({'range': f'E{row_index}', 'values': [['Yes']]})
                     if email:
-                        # Append data to Sheet2 if email found
-                        append_to_sheet2(worksheet2, [
+                        # Add email data to batch for Sheet2
+                        batch_email_data.append([
                             record['Username'],
                             record['User ID'],
                             profile_url,
                             email,
                             record['Repo']
                         ])
-                        logger.info(f"Added record to Sheet2: {record['Username']} - {email}")
-                    else:
-                        logger.info(f"No email found for {record['Username']}, skipping Sheet2.")
                 except Exception as e:
                     logger.error(f"An error occurred while processing {profile_url}: {e}")
+
+        # After processing a batch of 100, update Sheet1 and append to Sheet2
+        if batch_done_updates:
+            batch_update_sheet1(worksheet1, batch_done_updates)
+            batch_done_updates.clear()  # Clear the batch after updating
+
+        if batch_email_data:
+            batch_append_to_sheet2(worksheet2, batch_email_data)
+            batch_email_data.clear()  # Clear the batch after appending
 
 # Main function
 def main():
