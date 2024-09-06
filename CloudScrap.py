@@ -123,7 +123,7 @@ def process_batch(sheet, github_api_handler):
 def main():
     try:
         # Load GitHub API keys
-        github_api_keys = os.environ['GITHUB_API_KEYS'].split(',')
+        github_api_keys = os.environ['MY_GITHUB_API_KEYS'].split(',')
 
         # Initialize GitHub API handler
         github_api_handler = GitHubApiHandler(github_api_keys)
