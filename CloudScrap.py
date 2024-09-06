@@ -99,11 +99,13 @@ def get_records_with_empty_done(worksheet):
     return filtered_records
 
 def update_sheet1(worksheet, row_index):
-    # Update the 'Done?' field in Sheet1 with 'Yes'
-    worksheet.update(f'E{row_index}', [['Yes']])
+    # Update the 'Done?' field in Sheet1 with 'Yes' using named arguments
+    logger.info(f"Marking row {row_index} as Done in Sheet1.")
+    worksheet.update(range_name=f'E{row_index}', values=[['Yes']])
 
 def append_to_sheet2(worksheet, data):
     # Append data to Sheet2
+    logger.info(f"Appending data to Sheet2: {data}")
     worksheet.append_row(data)
 
 # Process batches of records from Google Sheets
@@ -131,6 +133,8 @@ def process_batch(worksheet1, worksheet2, github_api_handler):
                             record['Repo']
                         ])
                         logger.info(f"Added record to Sheet2: {record['Username']} - {email}")
+                    else:
+                        logger.info(f"No email found for {record['Username']}, skipping Sheet2.")
                 except Exception as e:
                     logger.error(f"An error occurred while processing {profile_url}: {e}")
 
