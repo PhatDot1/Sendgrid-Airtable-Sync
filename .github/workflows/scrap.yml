@@ -33,6 +33,6 @@ jobs:
       # Step 5: Run the email scraper script
       - name: Run email scraper script
         env:
-          GITHUB_API_KEYS: ${{ secrets.GITHUB_API_KEYS }}  # GitHub API keys should be stored in GitHub Secrets
+          MY_GITHUB_API_KEYS: ${{ secrets.MY_GITHUB_API_KEYS }}  # Use MY_GITHUB_API_KEYS to match the script
         run: |
-          python CloudScrap.py  # Replace with your script's filename
+          python CloudScrap.py  # Make sure this matches your script filename
