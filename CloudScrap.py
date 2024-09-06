@@ -98,27 +98,39 @@ def get_records_with_empty_done(worksheet):
     filtered_records = [record for record in records if not record['Done?']]
     return filtered_records
 
-def update_sheet_data(worksheet, cell_range, values):
-    worksheet.update(cell_range, values)
+def update_sheet1(worksheet, row_index):
+    # Update the 'Done?' field in Sheet1 with 'Yes'
+    worksheet.update(f'E{row_index}', [['Yes']])
+
+def append_to_sheet2(worksheet, data):
+    # Append data to Sheet2
+    worksheet.append_row(data)
 
 # Process batches of records from Google Sheets
-def process_batch(worksheet, github_api_handler):
-    records = get_records_with_empty_done(worksheet)
+def process_batch(worksheet1, worksheet2, github_api_handler):
+    records = get_records_with_empty_done(worksheet1)
     batch_size = 100
     for i in range(0, len(records), batch_size):
         batch = records[i:i + batch_size]
         for record in batch:
             profile_url = record['Profile URL']
+            row_index = records.index(record) + 2  # Adding 2 for 1-based indexing and skipping the header
             if profile_url:
                 logger.info(f"Processing record: {record['Username']} with GitHub URL: {profile_url}")
                 try:
                     email = github_api_handler.get_user_info_from_github_api(profile_url)
+                    # Mark as done in Sheet1 (column E)
+                    update_sheet1(worksheet1, row_index)
                     if email:
-                        row_index = records.index(record) + 2  # Adding 2 because Google Sheets rows are 1-based, and we skip the header
-                        # Update the 'Done?' field in the corresponding row
-                        update_sheet_data(worksheet, f'E{row_index}', [['Yes']])
-                        # Add data to Sheet2 (this is just a placeholder, adapt as needed)
-                        update_sheet_data(worksheet, f'A{row_index}:E{row_index}', [[record['Username'], record['User ID'], profile_url, email, record['Repo']]])
+                        # Append data to Sheet2 if email found
+                        append_to_sheet2(worksheet2, [
+                            record['Username'],
+                            record['User ID'],
+                            profile_url,
+                            email,
+                            record['Repo']
+                        ])
+                        logger.info(f"Added record to Sheet2: {record['Username']} - {email}")
                 except Exception as e:
                     logger.error(f"An error occurred while processing {profile_url}: {e}")
 
@@ -134,12 +146,13 @@ def main():
         # Open the Google Sheet
         sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1rKdG00VihG3zHRQLgQ6NteUHhdQxAqP2reLU8LCFotk/edit#gid=0")
         
-        # Select the specific worksheet (Sheet1)
-        worksheet = sheet.worksheet("Sheet1")
+        # Select the worksheets (Sheet1 and Sheet2)
+        worksheet1 = sheet.worksheet("Sheet1")
+        worksheet2 = sheet.worksheet("Sheet2")
         
         # Process records in batches of 100
         logger.info("Processing records in batches...")
-        process_batch(worksheet, github_api_handler)
+        process_batch(worksheet1, worksheet2, github_api_handler)
 
     except Exception as e:
         logger.error(f"An error occurred in the main function: {e}")
