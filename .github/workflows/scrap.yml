@@ -3,7 +3,7 @@ name: GScrap
 on:
   workflow_dispatch:  # Allows manual trigger
   schedule:
-    - cron: "0 */6 * * *"  # This runs the job every 6 hours
+    - cron: "0 */2 * * *"  # This runs the job every 2 hours
 
 jobs:
   scrape_emails:
