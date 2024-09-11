@@ -89,11 +89,9 @@ def get_sendgrid_unsubscribes():
         raise Exception(f"Failed to get unsubscribes from SendGrid: {response.status_code} - {response.text}")
 
 # Function to remove emails from SendGrid unsubscribe group
-
 def remove_from_sendgrid_unsubscribes(emails):
     logging.info(f"Removing {len(emails)} emails from the SendGrid unsubscribe group...")
     
-    # SendGrid requires individual DELETE requests for each email
     headers = {
         "Authorization": f"Bearer {SENDGRID_API_KEY}",
         "Content-Type": "application/json"
@@ -109,6 +107,30 @@ def remove_from_sendgrid_unsubscribes(emails):
         else:
             logging.error(f"Failed to remove {email} from SendGrid unsubscribe group: {response.status_code} - {response.text}")
             raise Exception(f"Failed to remove {email} from SendGrid unsubscribe group: {response.status_code} - {response.text}")
+
+# Function to add or update contacts in SendGrid
+def upsert_sendgrid_contacts(emails):
+    logging.info(f"Upserting {len(emails)} contacts to SendGrid 'All Contacts' list...")
+    
+    url = "https://api.sendgrid.com/v3/marketing/contacts"
+    
+    headers = {
+        "Authorization": f"Bearer {SENDGRID_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    contacts = [{"email": email} for email in emails]
+    data = {
+        "contacts": contacts
+    }
+    
+    response = requests.put(url, headers=headers, json=data)
+    
+    if response.status_code == 202:
+        logging.info(f"Successfully upserted {len(emails)} contacts to SendGrid.")
+    else:
+        logging.error(f"Failed to upsert contacts to SendGrid: {response.status_code} - {response.text}")
+        raise Exception(f"Failed to upsert contacts to SendGrid: {response.status_code} - {response.text}")
 
 # Main function
 def main():
@@ -130,6 +152,13 @@ def main():
             remove_from_sendgrid_unsubscribes(emails_to_remove)
         else:
             logging.info("No emails to remove from the SendGrid unsubscribe group.")
+        
+        # Step 4: Upsert emails to SendGrid "All Contacts" list
+        if given_consent_emails:
+            logging.info(f"Upserting {len(given_consent_emails)} emails to SendGrid 'All Contacts'.")
+            upsert_sendgrid_contacts(given_consent_emails)
+        else:
+            logging.info("No emails to upsert to 'All Contacts'.")
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
 
