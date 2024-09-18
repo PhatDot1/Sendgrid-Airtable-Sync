@@ -90,9 +90,9 @@ def update_airtable_record(record_id, email):
         
         # Determine the new snapshot value based on whether there's already data
         if current_snapshot:
-            new_snapshot = f"{current_snapshot}, Newsletter - Consent Revoked - {datetime.now().strftime('%Y-%m-%d')} - N/A"
+            new_snapshot = f"{current_snapshot}, Newsletter - Consent Revoked - {datetime.now().strftime('%Y-%m-%d')} - N/A - Link in Newsletter"
         else:
-            new_snapshot = f"Newsletter - Consent Revoked - {datetime.now().strftime('%Y-%m-%d')} - N/A"
+            new_snapshot = f"Newsletter - Consent Revoked - {datetime.now().strftime('%Y-%m-%d')} - N/A - Link in Newsletter"
         
         # Update the record with the new snapshot
         update_data = {
