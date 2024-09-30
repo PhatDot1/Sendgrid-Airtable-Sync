@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests gspread oauth2client
+          pip install requests gspread oauth2client beautifulsoup4 lxml  # Added BeautifulSoup and lxml
 
       # Step 4: Decode Google Sheets credentials
       - name: Decode Google Sheets credentials
@@ -33,6 +33,6 @@ jobs:
       # Step 5: Run the email scraper script
       - name: Run email scraper script
         env:
-          MY_GITHUB_API_KEYS: ${{ secrets.MY_GITHUB_API_KEYS }}  # Use MY_GITHUB_API_KEYS to match the script
+          MY_GITHUB_API_KEYS: ${{ secrets.MY_GITHUB_API_KEYS }} 
         run: |
-          python CloudScrap.py  # Make sure this matches your script filename
+          python CloudScrap.py  
