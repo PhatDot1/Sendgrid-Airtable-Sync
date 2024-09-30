@@ -7,6 +7,7 @@ import re
 from oauth2client.service_account import ServiceAccountCredentials
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+from bs4 import BeautifulSoup  # Importing BeautifulSoup for HTML parsing
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -82,6 +83,8 @@ class GitHubApiHandler:
             return None
         user_data = response.json()
         email = user_data.get('email', '') or self.get_email_from_readme(username, headers)
+        if not email:
+            email = self.get_email_from_bio(profile_url, headers)
         return email
 
     def get_email_from_readme(self, username, headers):
@@ -89,6 +92,18 @@ class GitHubApiHandler:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             return extract_email(response.text)
+        return None
+
+    def get_email_from_bio(self, profile_url, headers):
+        # This function scrapes the user's GitHub bio for an email address
+        response = requests.get(profile_url, headers=headers)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            bio_div = soup.find('div', class_='p-note user-profile-bio')
+            if bio_div:
+                bio_text = bio_div.get_text()
+                email = extract_email(bio_text)
+                return email
         return None
 
 # Define Google Sheets interaction functions
