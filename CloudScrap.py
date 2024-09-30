@@ -94,17 +94,28 @@ class GitHubApiHandler:
             return extract_email(response.text)
         return None
 
-    def get_email_from_bio(self, profile_url, headers):
-        # This function scrapes the user's GitHub bio for an email address
-        response = requests.get(profile_url, headers=headers)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            bio_div = soup.find('div', class_='p-note user-profile-bio')
-            if bio_div:
-                bio_text = bio_div.get_text()
-                email = extract_email(bio_text)
-                return email
-        return None
+    def get_email_from_bio(profile_url, headers):
+    # This function scrapes the user's GitHub bio for an email address
+    response = requests.get(profile_url, headers=headers)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Find the div containing the bio
+        bio_div = soup.find('div', class_='p-note user-profile-bio')
+        
+        if bio_div:
+            # First, try to extract the email from the visible text in the div
+            bio_text = bio_div.get_text()
+            email = extract_email(bio_text)
+            
+            if not email:
+                # If no email found in visible text, check the 'data-bio-text' attribute
+                bio_data_text = bio_div.get('data-bio-text', '')
+                email = extract_email(bio_data_text)
+                
+            return email
+    return None
+
 
 # Define Google Sheets interaction functions
 def get_records_with_empty_done(worksheet):
