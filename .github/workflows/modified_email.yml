@@ -3,6 +3,7 @@ name: Airtable to SendGrid Modified Email Sync
 on:
   schedule:
     - cron: "*/10 * * * *"  # Runs every 10 minutes
+  workflow_dispatch: 
 
 jobs:
   sync:
