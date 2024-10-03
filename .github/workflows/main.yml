@@ -2,7 +2,7 @@ name: Run Airtable to SendGrid Sync
 
 on:
   schedule:
-    - cron: "BROKEN"
+    - cron: "*/10 * * * *"  
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
