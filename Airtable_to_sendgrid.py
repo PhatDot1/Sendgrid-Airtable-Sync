@@ -4,7 +4,7 @@ import re
 import logging
 from datetime import datetime, timedelta
 
-# Set up logging
+# Set up logging bumping to enable workflows
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # SendGrid API Key and Unsubscribe Group ID
