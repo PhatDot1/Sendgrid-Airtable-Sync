@@ -1,4 +1,4 @@
-name: Run Airtable to SendGrid Sync
+name: Run Airtable to SendGrid Unsub Sync
 
 on:
   schedule:
